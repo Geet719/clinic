@@ -37,9 +37,32 @@ function DoctorLogin() {
 
       if (response.ok) {
         const data = await response.json();
+        
+        // Debug: Log the response data
+        console.log("Login response:", data);
+        
+        // Ensure we have both token and doctor data
+        if (!data.token || !data.doctor) {
+          throw new Error("Invalid response format: missing token or doctor data");
+        }
+
+        // Clear existing data
         localStorage.clear();
+        
+        // Save new data
         localStorage.setItem("token", data.token);
         localStorage.setItem("doctor", JSON.stringify(data.doctor));
+        
+        // Debug: Verify data was saved
+        const savedToken = localStorage.getItem("token");
+        const savedDoctor = localStorage.getItem("doctor");
+        console.log("Saved token:", savedToken);
+        console.log("Saved doctor:", savedDoctor);
+        
+        if (!savedToken || !savedDoctor) {
+          throw new Error("Failed to save data to localStorage");
+        }
+
         alert("Login successful!");
 
         // Wait for 600ms before redirecting
@@ -51,8 +74,8 @@ function DoctorLogin() {
         setError(errorData.message || "Invalid credentials. Please try again.");
       }
     } catch (error) {
-      console.error("Error:", error);
-      setError("An error occurred. Please check your network and try again.");
+      console.error("Login error:", error);
+      setError(error.message || "An error occurred. Please check your network and try again.");
     } finally {
       setLoading(false);
     }
