@@ -5,15 +5,24 @@ import Footer from "../../Footer";
 import MyChats from "./MyChats";
 import ChatBox from "./ChatBox";
 import { ChatProvider, useChat } from "./ChatProvider";
+import { useNavigate } from "react-router-dom";
 
 function ChatContent() {
   const [showSidebar, setShowSidebar] = useState(true);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const { fetchChats, loading, error } = useChat();
+  const { fetchChats, loading, error, isInitialized, doctor } = useChat();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    fetchChats();
-  }, [fetchChats]);
+    if (!doctor) {
+      navigate("/doctor/login");
+      return;
+    }
+
+    if (isInitialized) {
+      fetchChats();
+    }
+  }, [isInitialized, doctor, fetchChats, navigate]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -26,6 +35,14 @@ function ChatContent() {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  if (!isInitialized) {
+    return (
+      <div className="min-h-screen bg-gray-50 pt-16 flex items-center justify-center">
+        <FaSpinner className="animate-spin text-4xl text-blue-500" />
+      </div>
+    );
+  }
 
   if (loading) {
     return (
