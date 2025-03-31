@@ -45,16 +45,16 @@ export function ChatProvider({ children }) {
       console.log("Fetching chats with token:", token.substring(0, 10) + "...");
       console.log("Doctor ID:", doctor._id);
       
+      // Updated to use the correct endpoint that matches the backend route
       const response = await fetch(
-        `https://clinic-6-hxpa.onrender.com/chat/doctor/${doctor._id}`,
+        `https://clinic-6-hxpa.onrender.com/chats/fetchchats/${doctor._id}`,
         {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
             'Accept': 'application/json'
-          },
-          credentials: 'include'
+          }
         }
       );
       
@@ -109,11 +109,12 @@ export function ChatProvider({ children }) {
       setLoading(true);
       setError("");
       const response = await fetch(
-        `https://clinic-6-hxpa.onrender.com/message/${chatId}`,
+        `https://clinic-6-hxpa.onrender.com/messages/${chatId}`,
         {
           headers: {
             'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
           }
         }
       );
@@ -130,6 +131,8 @@ export function ChatProvider({ children }) {
       
       const contentType = response.headers.get("content-type");
       if (!contentType || !contentType.includes("application/json")) {
+        const text = await response.text();
+        console.log("Non-JSON response:", text);
         throw new Error("Server returned non-JSON response");
       }
       
@@ -167,12 +170,13 @@ export function ChatProvider({ children }) {
     try {
       setLoading(true);
       const response = await fetch(
-        "https://clinic-6-hxpa.onrender.com/message/send",
+        "https://clinic-6-hxpa.onrender.com/messages/send",
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            'Authorization': `Bearer ${token}`
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json'
           },
           body: JSON.stringify(newMessage),
         }
@@ -220,12 +224,13 @@ export function ChatProvider({ children }) {
     try {
       setLoading(true);
       const response = await fetch(
-        "https://clinic-6-hxpa.onrender.com/chat/create",
+        "https://clinic-6-hxpa.onrender.com/chats/create",
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            'Authorization': `Bearer ${token}`
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json'
           },
           body: JSON.stringify({
             doctorId: doctor._id,
@@ -272,12 +277,13 @@ export function ChatProvider({ children }) {
 
     try {
       const response = await fetch(
-        `https://clinic-6-hxpa.onrender.com/message/read/${chatId}`,
+        `https://clinic-6-hxpa.onrender.com/messages/read/${chatId}`,
         {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
-            'Authorization': `Bearer ${token}`
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json'
           },
         }
       );
