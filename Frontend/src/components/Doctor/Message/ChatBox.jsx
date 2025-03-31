@@ -8,37 +8,21 @@ import {
   FaEnvelope,
   FaClock,
 } from "react-icons/fa";
+import { useChat } from "../../contexts/ChatContext";
 
-function ChatBox({ selectedChat, doctor }) {
+function ChatBox() {
+  const { 
+    selectedChat, 
+    messages, 
+    sendMessage, 
+    loading, 
+    error 
+  } = useChat();
   const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const [patientDetails, setPatientDetails] = useState(null);
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
-    const fetchMessages = async () => {
-      try {
-        setLoading(true);
-        setError("");
-        // Replace with your actual API endpoint
-        const response = await fetch(
-          `https://clinic-6-hxpa.onrender.com/message/${selectedChat._id}`
-        );
-        if (!response.ok) {
-          throw new Error("Failed to fetch messages");
-        }
-        const data = await response.json();
-        setMessages(data);
-      } catch (err) {
-        setError("Failed to load messages. Please try again later.");
-        console.error("Error fetching messages:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     const fetchPatientDetails = async () => {
       try {
         // Replace with your actual API endpoint
@@ -56,7 +40,6 @@ function ChatBox({ selectedChat, doctor }) {
     };
 
     if (selectedChat) {
-      fetchMessages();
       fetchPatientDetails();
     }
   }, [selectedChat]);
@@ -76,7 +59,7 @@ function ChatBox({ selectedChat, doctor }) {
     const newMessage = {
       chatId: selectedChat._id,
       content: message,
-      senderId: doctor._id,
+      senderId: selectedChat.doctorId,
       senderType: "Doctor",
     };
 
@@ -99,7 +82,7 @@ function ChatBox({ selectedChat, doctor }) {
       }
 
       const data = await response.json();
-      setMessages((prevMessages) => [...prevMessages, data]);
+      sendMessage(data);
       setMessage("");
     } catch (err) {
       setError("Failed to send message. Please try again.");
