@@ -14,7 +14,9 @@ export function ChatProvider({ children }) {
   useEffect(() => {
     // Get doctor data from localStorage
     const doctorData = JSON.parse(localStorage.getItem("doctor"));
-    if (doctorData) {
+    const token = localStorage.getItem("token");
+    
+    if (doctorData && token) {
       setDoctor(doctorData);
       setIsInitialized(true);
     } else {
@@ -29,14 +31,33 @@ export function ChatProvider({ children }) {
       return;
     }
 
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setError("Authentication token not found. Please login again.");
+      return;
+    }
+
     try {
       setLoading(true);
       setError("");
+      
       const response = await fetch(
-        `https://clinic-6-hxpa.onrender.com/chat/doctor/${doctor._id}`
+        `https://clinic-6-hxpa.onrender.com/chat/doctor/${doctor._id}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
       );
       
       if (!response.ok) {
+        if (response.status === 401) {
+          setError("Session expired. Please login again.");
+          localStorage.clear();
+          window.location.href = "/doctor/login";
+          return;
+        }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
@@ -49,7 +70,11 @@ export function ChatProvider({ children }) {
       setChats(data);
     } catch (err) {
       console.error("Error fetching chats:", err);
-      setError("Failed to load chats. Please try again later.");
+      if (err.message.includes("non-JSON response")) {
+        setError("Server error. Please try again later.");
+      } else {
+        setError("Failed to load chats. Please try again later.");
+      }
     } finally {
       setLoading(false);
     }
@@ -59,14 +84,32 @@ export function ChatProvider({ children }) {
   const fetchMessages = async (chatId) => {
     if (!chatId) return;
 
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setError("Authentication token not found. Please login again.");
+      return;
+    }
+
     try {
       setLoading(true);
       setError("");
       const response = await fetch(
-        `https://clinic-6-hxpa.onrender.com/message/${chatId}`
+        `https://clinic-6-hxpa.onrender.com/message/${chatId}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
       );
       
       if (!response.ok) {
+        if (response.status === 401) {
+          setError("Session expired. Please login again.");
+          localStorage.clear();
+          window.location.href = "/doctor/login";
+          return;
+        }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
@@ -79,7 +122,11 @@ export function ChatProvider({ children }) {
       setMessages(data);
     } catch (err) {
       console.error("Error fetching messages:", err);
-      setError("Failed to load messages. Please try again later.");
+      if (err.message.includes("non-JSON response")) {
+        setError("Server error. Please try again later.");
+      } else {
+        setError("Failed to load messages. Please try again later.");
+      }
     } finally {
       setLoading(false);
     }
@@ -88,6 +135,12 @@ export function ChatProvider({ children }) {
   // Send a new message
   const sendMessage = async (content) => {
     if (!content.trim() || !selectedChat || !doctor?._id) return;
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setError("Authentication token not found. Please login again.");
+      return;
+    }
 
     const newMessage = {
       chatId: selectedChat._id,
@@ -104,12 +157,19 @@ export function ChatProvider({ children }) {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            'Authorization': `Bearer ${token}`
           },
           body: JSON.stringify(newMessage),
         }
       );
 
       if (!response.ok) {
+        if (response.status === 401) {
+          setError("Session expired. Please login again.");
+          localStorage.clear();
+          window.location.href = "/doctor/login";
+          return;
+        }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
@@ -118,7 +178,11 @@ export function ChatProvider({ children }) {
       return data;
     } catch (err) {
       console.error("Error sending message:", err);
-      setError("Failed to send message. Please try again.");
+      if (err.message.includes("non-JSON response")) {
+        setError("Server error. Please try again later.");
+      } else {
+        setError("Failed to send message. Please try again.");
+      }
       throw err;
     } finally {
       setLoading(false);
@@ -132,6 +196,12 @@ export function ChatProvider({ children }) {
       return;
     }
 
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setError("Authentication token not found. Please login again.");
+      return;
+    }
+
     try {
       setLoading(true);
       const response = await fetch(
@@ -140,6 +210,7 @@ export function ChatProvider({ children }) {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            'Authorization': `Bearer ${token}`
           },
           body: JSON.stringify({
             doctorId: doctor._id,
@@ -149,6 +220,12 @@ export function ChatProvider({ children }) {
       );
 
       if (!response.ok) {
+        if (response.status === 401) {
+          setError("Session expired. Please login again.");
+          localStorage.clear();
+          window.location.href = "/doctor/login";
+          return;
+        }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
@@ -157,7 +234,11 @@ export function ChatProvider({ children }) {
       return data;
     } catch (err) {
       console.error("Error creating chat:", err);
-      setError("Failed to create chat. Please try again.");
+      if (err.message.includes("non-JSON response")) {
+        setError("Server error. Please try again later.");
+      } else {
+        setError("Failed to create chat. Please try again.");
+      }
       throw err;
     } finally {
       setLoading(false);
@@ -168,6 +249,12 @@ export function ChatProvider({ children }) {
   const markMessagesAsRead = async (chatId) => {
     if (!chatId) return;
 
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setError("Authentication token not found. Please login again.");
+      return;
+    }
+
     try {
       const response = await fetch(
         `https://clinic-6-hxpa.onrender.com/message/read/${chatId}`,
@@ -175,11 +262,18 @@ export function ChatProvider({ children }) {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
+            'Authorization': `Bearer ${token}`
           },
         }
       );
 
       if (!response.ok) {
+        if (response.status === 401) {
+          setError("Session expired. Please login again.");
+          localStorage.clear();
+          window.location.href = "/doctor/login";
+          return;
+        }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
