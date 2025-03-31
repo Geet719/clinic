@@ -9,17 +9,16 @@ import {
 } from "react-icons/fa";
 
 function PatientPortal() {
-  const [data, setData] = useState(null); // State to hold patient data
-  const [appointments, setAppointments] = useState([]); // State for appointments
-  const [loading, setLoading] = useState(true); // Loading state
-  const [error, setError] = useState(null); // Error state
+  const [data, setData] = useState(null);
+  const [appointments, setAppointments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Fetch stored patient from localStorage
   const storedPatient = JSON.parse(localStorage.getItem("patient"));
   const patientID = storedPatient?._id;
 
   useEffect(() => {
-    if (!patientID) return; // Avoid fetching data if patientID is not available
+    if (!patientID) return;
 
     const fetchPatient = async () => {
       try {
@@ -31,9 +30,8 @@ function PatientPortal() {
         }
 
         const fetchedData = await response.json();
-        setData(fetchedData); // Update state with fetched patient data
+        setData(fetchedData);
 
-        // Fetch appointment details
         const appointments = fetchedData.appointments || [];
         console.log("Fetched Appointment IDs:", appointments);
 
@@ -55,25 +53,23 @@ function PatientPortal() {
             })
           );
 
-          // Sort appointments by date
           const sortedAppointments = appointmentData.sort(
             (a, b) => new Date(a.date) - new Date(b.date)
           );
 
-          setAppointments(sortedAppointments); // Update state with sorted appointments
+          setAppointments(sortedAppointments);
         }
       } catch (error) {
         console.error("Error fetching patient or appointments:", error);
-        setError(error.message); // Set error message
+        setError(error.message);
       } finally {
-        setLoading(false); // Stop loading
+        setLoading(false);
       }
     };
 
     fetchPatient();
   }, [patientID]);
 
-  // Filter upcoming appointments
   const today = new Date();
   const upcomingAppointments = appointments.filter((appointment) => {
     const appointmentDate = new Date(appointment.date);
@@ -83,29 +79,31 @@ function PatientPortal() {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-gray-100 py-8 px-4">
-        <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-lg p-6">
-          <h1 className="text-3xl font-bold text-blue-600 mb-6 text-center">
+      <div className="min-h-screen bg-gray-100 py-4 md:py-8 px-2 md:px-4">
+        <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-lg p-3 md:p-6">
+          <h1 className="text-2xl md:text-3xl font-bold text-blue-600 mb-4 md:mb-6 text-center">
             Welcome to Your Patient Portal
           </h1>
 
           {loading && (
-            <div className="text-center text-gray-500">Loading...</div>
+            <div className="text-center text-gray-500 py-4">Loading...</div>
           )}
-          {error && <div className="text-center text-red-500">{error}</div>}
+          {error && (
+            <div className="text-center text-red-500 py-4">{error}</div>
+          )}
 
           {data ? (
-            <>
+            <div className="space-y-4 md:space-y-6">
               {/* General Information */}
-              <div className="bg-white shadow-md rounded-lg p-6 mb-6">
-                <h3 className="text-2xl font-semibold text-blue-600 mb-4 flex items-center">
-                  <FaUser className="mr-3" /> General Information
+              <div className="bg-white shadow-md rounded-lg p-4 md:p-6">
+                <h3 className="text-xl md:text-2xl font-semibold text-blue-600 mb-3 md:mb-4 flex items-center">
+                  <FaUser className="mr-2 md:mr-3" /> General Information
                 </h3>
-                <div className="space-y-3 text-gray-700">
-                  <p>
+                <div className="space-y-2 md:space-y-3 text-sm md:text-base text-gray-700">
+                  <p className="break-words">
                     <strong>Name:</strong> {data.fullName}
                   </p>
-                  <p>
+                  <p className="break-words">
                     <strong>Email:</strong> {data.email}
                   </p>
                   <p>
@@ -116,12 +114,12 @@ function PatientPortal() {
               </div>
 
               {/* Next Appointment */}
-              <div className="bg-white shadow-md rounded-lg p-6 mb-6">
-                <h4 className="text-2xl font-semibold text-green-500 flex items-center">
-                  <FaCalendarAlt className="mr-3" /> Next Appointment
+              <div className="bg-white shadow-md rounded-lg p-4 md:p-6">
+                <h4 className="text-xl md:text-2xl font-semibold text-green-500 flex items-center mb-3 md:mb-4">
+                  <FaCalendarAlt className="mr-2 md:mr-3" /> Next Appointment
                 </h4>
                 {upcomingAppointments.length > 0 ? (
-                  <div className="space-y-2 text-gray-700">
+                  <div className="space-y-2 text-sm md:text-base text-gray-700">
                     <p>
                       <strong>Date:</strong>{" "}
                       {new Date(
@@ -138,55 +136,57 @@ function PatientPortal() {
                     </p>
                   </div>
                 ) : (
-                  <p className="text-red-500">No upcoming appointments.</p>
+                  <p className="text-red-500 text-sm md:text-base">No upcoming appointments.</p>
                 )}
               </div>
 
               {/* Medical History */}
-              <div className="bg-white shadow-md rounded-lg p-6 mb-6">
-                <h3 className="text-2xl font-semibold text-blue-600 mb-4 flex items-center">
-                  <FaFileMedical className="mr-3" /> Medical History
+              <div className="bg-white shadow-md rounded-lg p-4 md:p-6">
+                <h3 className="text-xl md:text-2xl font-semibold text-blue-600 mb-3 md:mb-4 flex items-center">
+                  <FaFileMedical className="mr-2 md:mr-3" /> Medical History
                 </h3>
                 {data?.medicalHistory?.length ? (
-                  <div className="space-y-4">
+                  <div className="space-y-3 md:space-y-4">
                     {data.medicalHistory.map((history, index) => (
                       <div
                         key={index}
-                        className="p-4 border border-gray-300 rounded-lg bg-gray-50"
+                        className="p-3 md:p-4 border border-gray-300 rounded-lg bg-gray-50"
                       >
-                        <p>
-                          <strong>Date:</strong>{" "}
-                          {new Date(history.date).toLocaleDateString()}
-                        </p>
-                        <p>
-                          <strong>Diagnosis:</strong> {history.diagnosis}
-                        </p>
-                        <pre>
-                          <strong>Medication:</strong> {history.medication}
-                        </pre>
+                        <div className="space-y-2 text-sm md:text-base">
+                          <p>
+                            <strong>Date:</strong>{" "}
+                            {new Date(history.date).toLocaleDateString()}
+                          </p>
+                          <p>
+                            <strong>Diagnosis:</strong> {history.diagnosis}
+                          </p>
+                          <p className="whitespace-pre-wrap">
+                            <strong>Medication:</strong> {history.medication}
+                          </p>
+                        </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-red-500">No medical history available.</p>
+                  <p className="text-red-500 text-sm md:text-base">No medical history available.</p>
                 )}
               </div>
 
               {/* Prohibitions Information */}
-              <div className="bg-white shadow-md rounded-lg p-6">
-                <h3 className="text-2xl font-semibold text-blue-600 mb-4 flex items-center">
-                  <FaExclamationCircle className="mr-3" /> Prohibitions
+              <div className="bg-white shadow-md rounded-lg p-4 md:p-6">
+                <h3 className="text-xl md:text-2xl font-semibold text-blue-600 mb-3 md:mb-4 flex items-center">
+                  <FaExclamationCircle className="mr-2 md:mr-3" /> Prohibitions
                 </h3>
-                <div className="p-4 border border-gray-300 rounded-lg bg-gray-50">
-                  <pre className="text-gray-700">
+                <div className="p-3 md:p-4 border border-gray-300 rounded-lg bg-gray-50">
+                  <p className="text-sm md:text-base text-gray-700 whitespace-pre-wrap">
                     <strong>Prohibitions:</strong>{" "}
                     {data.prohibitions || "None available."}
-                  </pre>
+                  </p>
                 </div>
               </div>
-            </>
+            </div>
           ) : (
-            <p className="text-center text-red-500">
+            <p className="text-center text-red-500 py-4">
               No patient data available.
             </p>
           )}

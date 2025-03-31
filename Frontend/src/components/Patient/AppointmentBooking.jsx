@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Navbar from "./Navbar";
 import Footer from "../Footer";
+import { FaCalendarAlt, FaClock, FaSpinner } from "react-icons/fa";
 
 const AppointmentBooking = () => {
   const [date, setDate] = useState("");
@@ -8,6 +9,7 @@ const AppointmentBooking = () => {
   const [availableSlots, setAvailableSlots] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(false);
 
   useEffect(() => {
     if (date) {
@@ -39,25 +41,24 @@ const AppointmentBooking = () => {
     e.preventDefault();
 
     if (!date || !timeSlot) {
-      alert("Please select a date and time slot.");
+      setError("Please select a date and time slot.");
       return;
     }
 
     setLoading(true);
+    setError(null);
+    setSuccess(false);
 
-    // Retrieve patient details from localStorage
     const patientDetails = JSON.parse(localStorage.getItem("patient"));
     const token = localStorage.getItem("token");
 
     if (!patientDetails || !token) {
-      console.error("Patient details or token not found in localStorage.");
-      alert("Patient not logged in. Please log in to book an appointment.");
+      setError("Patient not logged in. Please log in to book an appointment.");
       setLoading(false);
       return;
     }
 
-    const { _id, fullName, email, medicalHistory, profilePhoto } =
-      patientDetails;
+    const { _id, fullName, email, medicalHistory, profilePhoto } = patientDetails;
 
     const appointmentData = {
       patientId: _id,
@@ -65,8 +66,8 @@ const AppointmentBooking = () => {
       email,
       medicalHistory,
       profilePhoto,
-      date: date, // Ensure date and timeSlot are directly part of the appointmentData
-      timeSlot: timeSlot,
+      date,
+      timeSlot,
     };
 
     try {
@@ -84,16 +85,16 @@ const AppointmentBooking = () => {
 
       const data = await response.json();
       if (data.success) {
-        alert("Appointment booked successfully!");
+        setSuccess(true);
         setDate("");
         setTimeSlot("");
         setAvailableSlots([]);
       } else {
-        alert(data.message || "Error booking appointment");
+        setError(data.message || "Error booking appointment");
       }
     } catch (error) {
       console.error("Error booking appointment:", error);
-      alert("Failed to book appointment");
+      setError("Failed to book appointment. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -102,47 +103,52 @@ const AppointmentBooking = () => {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 to-blue-300 py-10 px-4">
-        <div className="bg-white shadow-2xl rounded-lg p-8 max-w-lg w-full">
-          <h2 className="text-3xl font-bold text-center text-gray-800 mb-8">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 to-blue-300 py-4 md:py-10 px-2 md:px-4">
+        <div className="bg-white shadow-2xl rounded-lg p-4 md:p-8 max-w-lg w-full mx-2">
+          <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-800 mb-6 md:mb-8">
             Book an Appointment
           </h2>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
             {/* Date Picker */}
-            <div>
+            <div className="relative">
               <label
                 htmlFor="date"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
-                Select Date
+                <FaCalendarAlt className="inline-block mr-1" /> Select Date
               </label>
               <input
                 type="date"
                 id="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="w-full px-4 py-3 border rounded-lg focus:ring focus:ring-blue-400 focus:outline-none shadow-sm"
+                min={new Date().toISOString().split('T')[0]}
+                className="w-full px-4 py-2 md:py-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none shadow-sm text-sm md:text-base"
               />
             </div>
 
             {/* Time Slot Selector */}
-            <div>
+            <div className="relative">
               <label
                 htmlFor="timeSlot"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
-                Select Time Slot
+                <FaClock className="inline-block mr-1" /> Select Time Slot
               </label>
               <select
                 id="timeSlot"
                 value={timeSlot}
                 onChange={(e) => setTimeSlot(e.target.value)}
-                className="w-full px-4 py-3 border rounded-lg focus:ring focus:ring-blue-400 focus:outline-none shadow-sm"
+                className="w-full px-4 py-2 md:py-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none shadow-sm text-sm md:text-base"
+                disabled={!date || loading}
               >
                 <option value="">-- Select a Time Slot --</option>
                 {loading ? (
-                  <option disabled>Loading...</option>
+                  <option disabled>
+                    <FaSpinner className="animate-spin inline-block mr-2" />
+                    Loading...
+                  </option>
                 ) : availableSlots.length > 0 ? (
                   availableSlots.map((slot, index) => (
                     <option key={index} value={slot}>
@@ -153,15 +159,40 @@ const AppointmentBooking = () => {
                   <option disabled>No slots available</option>
                 )}
               </select>
-              {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
             </div>
+
+            {/* Error Message */}
+            {error && (
+              <div className="bg-red-50 border-l-4 border-red-500 p-3 rounded-md">
+                <p className="text-red-700 text-sm md:text-base">{error}</p>
+              </div>
+            )}
+
+            {/* Success Message */}
+            {success && (
+              <div className="bg-green-50 border-l-4 border-green-500 p-3 rounded-md">
+                <p className="text-green-700 text-sm md:text-base">
+                  Appointment booked successfully!
+                </p>
+              </div>
+            )}
 
             {/* Submit Button */}
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 px-6 rounded-lg hover:from-blue-600 hover:to-blue-700 focus:ring focus:ring-blue-300 focus:outline-none font-medium shadow-md"
+              disabled={loading}
+              className={`w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-2 md:py-3 px-6 rounded-lg hover:from-blue-600 hover:to-blue-700 focus:ring-2 focus:ring-blue-300 focus:outline-none font-medium shadow-md transition-all duration-300 ${
+                loading ? 'opacity-75 cursor-not-allowed' : ''
+              }`}
             >
-              Book Appointment
+              {loading ? (
+                <span className="flex items-center justify-center">
+                  <FaSpinner className="animate-spin mr-2" />
+                  Booking...
+                </span>
+              ) : (
+                'Book Appointment'
+              )}
             </button>
           </form>
         </div>
