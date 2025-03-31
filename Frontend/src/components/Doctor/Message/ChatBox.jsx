@@ -8,7 +8,7 @@ import {
   FaEnvelope,
   FaClock,
 } from "react-icons/fa";
-import { useChat } from "../../contexts/ChatContext";
+import { useChat } from "./ChatProvider";
 
 function ChatBox() {
   const { 
