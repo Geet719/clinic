@@ -45,18 +45,17 @@ export function ChatProvider({ children }) {
       console.log("Fetching chats with token:", token.substring(0, 10) + "...");
       console.log("Doctor ID:", doctor._id);
       
-      // Updated to use the correct endpoint that matches the backend route
-      const response = await fetch(
-        `https://clinic-6-hxpa.onrender.com/chats/fetchchats/${doctor._id}`,
-        {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          }
+      const url = `https://clinic-6-hxpa.onrender.com/chats/fetchchats/${doctor._id}`;
+      console.log("Request URL:", url);
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
         }
-      );
+      });
       
       // Debug: Log the response details
       console.log("Response status:", response.status);
@@ -73,6 +72,8 @@ export function ChatProvider({ children }) {
       }
       
       const contentType = response.headers.get("content-type");
+      console.log("Response content-type:", contentType);
+      
       if (!contentType || !contentType.includes("application/json")) {
         // Debug: Log the response text for non-JSON responses
         const text = await response.text();
