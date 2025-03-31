@@ -41,15 +41,26 @@ export function ChatProvider({ children }) {
       setLoading(true);
       setError("");
       
+      // Debug: Log the request details
+      console.log("Fetching chats with token:", token.substring(0, 10) + "...");
+      console.log("Doctor ID:", doctor._id);
+      
       const response = await fetch(
         `https://clinic-6-hxpa.onrender.com/chat/doctor/${doctor._id}`,
         {
+          method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          credentials: 'include'
         }
       );
+      
+      // Debug: Log the response details
+      console.log("Response status:", response.status);
+      console.log("Response headers:", Object.fromEntries(response.headers.entries()));
       
       if (!response.ok) {
         if (response.status === 401) {
@@ -63,10 +74,14 @@ export function ChatProvider({ children }) {
       
       const contentType = response.headers.get("content-type");
       if (!contentType || !contentType.includes("application/json")) {
+        // Debug: Log the response text for non-JSON responses
+        const text = await response.text();
+        console.log("Non-JSON response:", text);
         throw new Error("Server returned non-JSON response");
       }
       
       const data = await response.json();
+      console.log("Received chat data:", data);
       setChats(data);
     } catch (err) {
       console.error("Error fetching chats:", err);
